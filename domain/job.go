@@ -1,13 +1,57 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"github.com/asaskevich/govalidator"
+	uuid "github.com/satori/go.uuid"
+)
+
+func init() {
+	govalidator.SetFieldsRequiredByDefault(true)
+}
 
 type Job struct {
-	ID               string
-	OutputBucketPath string
-	Status           string
-	Video            *Video
-	Error            string
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
+	ID               string    `valid:"uuid"`
+	OutputBucketPath string    `valid:"notnull"`
+	Status           string    `valid:"notnull"`
+	Video            *Video    `valid:"-"`
+	VideoID          string    `valid:"-"`
+	Error            string    `valid:"-"`
+	CreatedAt        time.Time `valid:"-"`
+	UpdatedAt        time.Time `valid:"-"`
+}
+
+func (j *Job) Validate() error {
+	_, err := govalidator.ValidateStruct(j)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (j *Job) prepare() {
+	uid, _ := uuid.NewV4()
+
+	j.ID = uid.String()
+	j.CreatedAt = time.Now()
+	j.UpdatedAt = time.Now()
+}
+
+func NewJob(output string, status string, video *Video) (*Job, error) {
+	job := Job{
+		OutputBucketPath: output,
+		Status:           status,
+		Video:            video,
+	}
+	job.prepare()
+
+	err := job.Validate()
+	if err != nil {
+		return nil, err
+	}
+
+	return &job, nil
 }
