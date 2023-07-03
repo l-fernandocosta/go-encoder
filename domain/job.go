@@ -33,7 +33,7 @@ func (j *Job) Validate() error {
 }
 
 func (j *Job) prepare() {
-	uid, _ := uuid.NewV4()
+	uid := uuid.NewV4()
 
 	j.ID = uid.String()
 	j.CreatedAt = time.Now()

@@ -17,10 +17,6 @@ func IsJson(s string) error {
 }
 
 func GenerateUUIDString() (string, error) {
-	id, err := uuid.NewV4()
-	if err != nil {
-		return "", err
-	}
-
-	return id.String(), err
+	id := uuid.NewV4().String()
+	return id, nil
 }

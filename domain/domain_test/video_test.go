@@ -32,7 +32,7 @@ func TestVideoIsNotAValidUUID(t *testing.T) {
 func TestVideoValidation(t *testing.T) {
 	video := domain.NewVideo()
 
-	uid, _ := uuid.NewV4()
+	uid := uuid.NewV4()
 	video.ID = uid.String()
 	video.ResourceID = "uuid"
 	video.FilePath = "path"

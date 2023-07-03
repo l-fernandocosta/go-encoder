@@ -25,10 +25,10 @@ func prepare() (*domain.Video, repositories.VideoRepository) {
 	db := database.NewDbTest()
 	defer db.Close()
 
-	id, _ := uuid.NewV4()
+	id := uuid.NewV4().String()
 
 	video := domain.NewVideo()
-	video.ID = id.String()
+	video.ID = id
 	video.FilePath = "convite.mp4"
 	video.CreatedAt = time.Now()
 

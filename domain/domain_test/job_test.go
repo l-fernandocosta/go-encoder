@@ -10,7 +10,7 @@ import (
 )
 
 func TestNewJob(t *testing.T) {
-	uid, _ := uuid.NewV4()
+	uid := uuid.NewV4()
 
 	video := domain.NewVideo()
 	video.ID = uid.String()
