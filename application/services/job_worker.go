@@ -16,7 +16,7 @@ type JobWorkerResult struct {
 	Error   error
 }
 
-func JobWorker(messageChan chan *amqp.Delivery, returnChan chan JobWorkerResult, jobService JobService, job domain.Job, workerID int) {
+func JobWorker(messageChan chan amqp.Delivery, returnChan chan JobWorkerResult, jobService JobService, job domain.Job, workerID int) {
 	// expected messageChannel output body:
 	// {
 	//  "resource_id" : "..."
@@ -27,7 +27,7 @@ func JobWorker(messageChan chan *amqp.Delivery, returnChan chan JobWorkerResult,
 		err := utils.IsJson(string(message.Body))
 
 		if err != nil {
-			returnChan <- returnJobResult(domain.Job{}, *message, err)
+			returnChan <- returnJobResult(domain.Job{}, message, err)
 			continue
 		}
 
@@ -36,19 +36,19 @@ func JobWorker(messageChan chan *amqp.Delivery, returnChan chan JobWorkerResult,
 		jobService.VideoService.Video.ID = videoID
 
 		if err != nil {
-			returnChan <- returnJobResult(domain.Job{}, *message, err)
+			returnChan <- returnJobResult(domain.Job{}, message, err)
 			continue
 		}
 
 		err = jobService.VideoService.Video.Validate()
 		if err != nil {
-			returnChan <- returnJobResult(domain.Job{}, *message, err)
+			returnChan <- returnJobResult(domain.Job{}, message, err)
 			continue
 		}
 
 		err = jobService.VideoService.InsertVideo()
 		if err != nil {
-			returnChan <- returnJobResult(domain.Job{}, *message, err)
+			returnChan <- returnJobResult(domain.Job{}, message, err)
 			continue
 		}
 		job.Video = jobService.VideoService.Video
@@ -60,7 +60,7 @@ func JobWorker(messageChan chan *amqp.Delivery, returnChan chan JobWorkerResult,
 
 		_, err = jobService.JobRepository.Insert(&job)
 		if err != nil {
-			returnChan <- returnJobResult(domain.Job{}, *message, err)
+			returnChan <- returnJobResult(domain.Job{}, message, err)
 			continue
 		}
 
@@ -68,11 +68,11 @@ func JobWorker(messageChan chan *amqp.Delivery, returnChan chan JobWorkerResult,
 
 		err = jobService.Start()
 		if err != nil {
-			returnChan <- returnJobResult(domain.Job{}, *message, err)
+			returnChan <- returnJobResult(domain.Job{}, message, err)
 			continue
 		}
 
-		returnChan <- returnJobResult(job, *message, nil)
+		returnChan <- returnJobResult(job, message, nil)
 	}
 }
 
