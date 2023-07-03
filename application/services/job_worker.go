@@ -5,6 +5,7 @@ import (
 	"encoder/framework/utils"
 	"encoding/json"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/streadway/amqp"
@@ -15,6 +16,8 @@ type JobWorkerResult struct {
 	Message *amqp.Delivery
 	Error   error
 }
+
+var Mutex = &sync.Mutex{}
 
 func JobWorker(messageChan chan amqp.Delivery, returnChan chan JobWorkerResult, jobService JobService, job domain.Job, workerID int) {
 	// expected messageChannel output body:
@@ -31,9 +34,11 @@ func JobWorker(messageChan chan amqp.Delivery, returnChan chan JobWorkerResult, 
 			continue
 		}
 
+		Mutex.Lock()
 		err = json.Unmarshal(message.Body, &jobService.VideoService.Video)
 		videoID, _ := utils.GenerateUUIDString()
 		jobService.VideoService.Video.ID = videoID
+		Mutex.Unlock()
 
 		if err != nil {
 			returnChan <- returnJobResult(domain.Job{}, message, err)
@@ -46,7 +51,9 @@ func JobWorker(messageChan chan amqp.Delivery, returnChan chan JobWorkerResult, 
 			continue
 		}
 
+		Mutex.Lock()
 		err = jobService.VideoService.InsertVideo()
+		Mutex.Unlock()
 		if err != nil {
 			returnChan <- returnJobResult(domain.Job{}, message, err)
 			continue
@@ -58,7 +65,9 @@ func JobWorker(messageChan chan amqp.Delivery, returnChan chan JobWorkerResult, 
 		job.Status = "STARTING"
 		job.CreatedAt = time.Now()
 
+		Mutex.Lock()
 		_, err = jobService.JobRepository.Insert(&job)
+		Mutex.Unlock()
 		if err != nil {
 			returnChan <- returnJobResult(domain.Job{}, message, err)
 			continue

@@ -5,6 +5,7 @@ import (
 	"encoder/application/repositories"
 	"encoder/domain"
 	"io/ioutil"
+
 	"log"
 	"os"
 	"os/exec"
